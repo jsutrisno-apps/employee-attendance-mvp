@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client"
+  output   = "./generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  Admin
+  Employee
+}
+
+enum AttendanceStatus {
+  Present
+  Late
+  Absent
+  Leave
+}
+
+model User {
+  id         String    @id @default(uuid()) @db.Uuid
+  email      String    @unique
+  role       Role
+  employeeId String?   @unique @db.Uuid
+  employee   Employee? @relation(fields: [employeeId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  createdAt  DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt  DateTime  @updatedAt @db.Timestamptz(6)
+
+  @@map("users")
+}
+
+model Employee {
+  id                String             @id @default(uuid()) @db.Uuid
+  employeeNumber    String             @unique
+  name              String
+  email             String             @unique
+  isActive          Boolean            @default(true)
+  user              User?
+  attendanceRecords AttendanceRecord[]
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @db.Timestamptz(6)
+
+  @@map("employees")
+}
+
+model AttendanceRecord {
+  id             String           @id @default(uuid()) @db.Uuid
+  employeeId     String           @db.Uuid
+  employee       Employee         @relation(fields: [employeeId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  attendanceDate DateTime         @db.Date
+  checkInAt      DateTime?        @db.Timestamptz(6)
+  checkOutAt     DateTime?        @db.Timestamptz(6)
+  status         AttendanceStatus
+  notes          String?
+  createdAt      DateTime         @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime         @updatedAt @db.Timestamptz(6)
+
+  @@unique([employeeId, attendanceDate])
+  @@map("attendance_records")
+}

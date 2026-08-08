@@ -11,6 +11,9 @@ dist/
 coverage/
 tsconfig.tsbuildinfo
 
+# Generated Prisma Client
+prisma/generated/
+
 # Environment files
 .env
 .env.local
