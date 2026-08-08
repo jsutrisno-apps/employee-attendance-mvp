@@ -79,11 +79,39 @@ export function getJakartaBusinessDate(instant: Date) {
 export function getJakartaBusinessDateKey(instant: Date) {
   const { year, month, day } = getJakartaDateParts(instant);
 
+  return formatBusinessDateKey(year, month, day);
+}
+
+export function formatBusinessDateKey(year: number, month: number, day: number) {
   return [
     String(year).padStart(4, "0"),
     String(month).padStart(2, "0"),
     String(day).padStart(2, "0"),
   ].join("-");
+}
+
+export function getBusinessDateKey(attendanceDate: Date) {
+  return formatBusinessDateKey(
+    attendanceDate.getUTCFullYear(),
+    attendanceDate.getUTCMonth() + 1,
+    attendanceDate.getUTCDate(),
+  );
+}
+
+export function addBusinessDateDays(attendanceDate: Date, days: number) {
+  return new Date(
+    Date.UTC(
+      attendanceDate.getUTCFullYear(),
+      attendanceDate.getUTCMonth(),
+      attendanceDate.getUTCDate() + days,
+    ),
+  );
+}
+
+export function isBusinessDateWorkday(attendanceDate: Date) {
+  const weekday = attendanceDate.getUTCDay();
+
+  return weekday >= 1 && weekday <= 5;
 }
 
 export function isJakartaWorkday(instant: Date) {

@@ -1,4 +1,5 @@
 import { signOut } from "@/auth";
+import Link from "next/link";
 import { requireEmployee } from "@/lib/authorization";
 import { prisma } from "@/lib/db";
 import {
@@ -102,6 +103,13 @@ export default async function EmployeePage() {
             You are marked as Leave today.
           </p>
         ) : null}
+
+        <Link
+          className="block w-full rounded-md border border-slate-300 px-4 py-2 text-center text-sm font-medium text-slate-950"
+          href="/employee/history"
+        >
+          View attendance history
+        </Link>
 
         <form
           action={async () => {
