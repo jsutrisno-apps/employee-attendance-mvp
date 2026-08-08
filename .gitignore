@@ -1,5 +1,6 @@
 # Dependencies
 node_modules/
+.pnpm-store/
 
 # Next.js
 .next/
@@ -8,6 +9,7 @@ out/
 # Build output
 dist/
 coverage/
+tsconfig.tsbuildinfo
 
 # Environment files
 .env

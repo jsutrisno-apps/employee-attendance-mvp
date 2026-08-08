@@ -15,9 +15,9 @@ The project is intended to:
 
 Current stage:
 
-**Stage 0 — Repository & Working Baseline**
+**Stage 3 — Application Foundation**
 
-Application features have not been implemented yet.
+Application foundation is in place. Product features have not been implemented yet.
 
 ## Planned MVP
 
