@@ -15,9 +15,28 @@ The project is intended to:
 
 Current stage:
 
-**Stage 5B — Authentication & Authorization Implementation**
+**Stage 8 — QA & Security Review**
 
-Authentication and authorization foundation is in place. Product features have not been implemented yet.
+MVP feature implementation and QA & Security Review are complete. The MVP has passed regression testing, authorization review, database integrity validation, dependency audit, type checking, linting, and production build validation.
+
+## Local Development & Validation Commands
+
+```bash
+# Install dependencies
+pnpm install
+
+# Database setup
+pnpm db:generate
+pnpm db:migrate
+pnpm db:seed
+
+# Validation
+pnpm prisma migrate status
+pnpm typecheck
+pnpm lint
+pnpm test
+pnpm build
+```
 
 ## Local Development Login
 
@@ -26,9 +45,9 @@ After running the development seed, these non-production demo accounts are avail
 * Admin: `admin@example.test` / `admin-password`
 * Employee: `employee.login@example.test` / `employee-password`
 
-## Planned MVP
+## Implemented MVP
 
-The first release will support:
+The MVP currently supports:
 
 ### Admin
 
