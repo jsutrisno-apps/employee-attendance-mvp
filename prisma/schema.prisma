@@ -20,13 +20,14 @@ enum AttendanceStatus {
 }
 
 model User {
-  id         String    @id @default(uuid()) @db.Uuid
-  email      String    @unique
-  role       Role
-  employeeId String?   @unique @db.Uuid
-  employee   Employee? @relation(fields: [employeeId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  createdAt  DateTime  @default(now()) @db.Timestamptz(6)
-  updatedAt  DateTime  @updatedAt @db.Timestamptz(6)
+  id           String    @id @default(uuid()) @db.Uuid
+  email        String    @unique
+  passwordHash String
+  role         Role
+  employeeId   String?   @unique @db.Uuid
+  employee     Employee? @relation(fields: [employeeId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  createdAt    DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime  @updatedAt @db.Timestamptz(6)
 
   @@map("users")
 }

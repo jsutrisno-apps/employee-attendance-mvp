@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { hash } from "bcryptjs";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "./generated/client";
 
@@ -11,15 +12,25 @@ if (!connectionString) {
 const adapter = new PrismaPg({ connectionString });
 const prisma = new PrismaClient({ adapter });
 
+const adminPassword = "admin-password";
+const employeePassword = "employee-password";
+
 async function main() {
+  const [adminPasswordHash, employeePasswordHash] = await Promise.all([
+    hash(adminPassword, 12),
+    hash(employeePassword, 12),
+  ]);
+
   const adminUser = await prisma.user.upsert({
     where: { email: "admin@example.test" },
     update: {
+      passwordHash: adminPasswordHash,
       role: "Admin",
       employeeId: null,
     },
     create: {
       email: "admin@example.test",
+      passwordHash: adminPasswordHash,
       role: "Admin",
     },
   });
@@ -42,11 +53,13 @@ async function main() {
   const employeeUser = await prisma.user.upsert({
     where: { email: "employee.login@example.test" },
     update: {
+      passwordHash: employeePasswordHash,
       role: "Employee",
       employeeId: employee.id,
     },
     create: {
       email: "employee.login@example.test",
+      passwordHash: employeePasswordHash,
       role: "Employee",
       employeeId: employee.id,
     },

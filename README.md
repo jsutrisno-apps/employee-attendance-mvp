@@ -15,9 +15,16 @@ The project is intended to:
 
 Current stage:
 
-**Stage 3 — Application Foundation**
+**Stage 5B — Authentication & Authorization Implementation**
 
-Application foundation is in place. Product features have not been implemented yet.
+Authentication and authorization foundation is in place. Product features have not been implemented yet.
+
+## Local Development Login
+
+After running the development seed, these non-production demo accounts are available:
+
+* Admin: `admin@example.test` / `admin-password`
+* Employee: `employee.login@example.test` / `employee-password`
 
 ## Planned MVP
 
