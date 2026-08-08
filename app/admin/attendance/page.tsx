@@ -135,6 +135,12 @@ export default async function AdminAttendancePage({
             >
               Today
             </Link>
+            <Link
+              className="rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white"
+              href="/admin/attendance/leave"
+            >
+              Mark Leave
+            </Link>
           </form>
         </div>
 
