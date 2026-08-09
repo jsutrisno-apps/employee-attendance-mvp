@@ -3,7 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { markEmployeeLeave } from "@/lib/admin-leave";
-import { requireAdmin } from "@/lib/authorization";
+import {
+  requireAdminMutation,
+  DemoAccessRestrictedError,
+  DEMO_RESTRICTED_MESSAGE,
+} from "@/lib/authorization";
 import { prisma } from "@/lib/db";
 
 export type LeaveFormState = {
@@ -24,7 +28,14 @@ export async function markLeaveAction(
   _previousState: LeaveFormState,
   formData: FormData,
 ): Promise<LeaveFormState> {
-  await requireAdmin();
+  try {
+    await requireAdminMutation();
+  } catch (error) {
+    if (error instanceof DemoAccessRestrictedError) {
+      return { errors: { form: DEMO_RESTRICTED_MESSAGE } };
+    }
+    throw error;
+  }
 
   const result = await markEmployeeLeave({
     database: prisma,

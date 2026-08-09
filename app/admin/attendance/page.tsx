@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { signOut } from "@/auth";
-import { requireAdmin } from "@/lib/authorization";
+import { requireAdminView } from "@/lib/authorization";
 import { prisma } from "@/lib/db";
 import {
   buildAdminAttendanceRows,
@@ -57,7 +57,7 @@ function parseSelectedDate(dateParam: string | string[] | undefined) {
 export default async function AdminAttendancePage({
   searchParams,
 }: AdminAttendancePageProps) {
-  await requireAdmin();
+  const adminUser = await requireAdminView();
 
   const resolvedSearchParams = await searchParams;
   const currentBusinessDate = getJakartaBusinessDate(new Date());
@@ -111,7 +111,7 @@ export default async function AdminAttendancePage({
       subtitle={`Selected business date: ${formatJakartaBusinessDate(selectedDate)}`}
       headerDate={formatJakartaBusinessDate(selectedDate)}
       user={{
-        role: "Admin",
+        role: adminUser.role,
       }}
       signOutAction={signOutAction}
     >

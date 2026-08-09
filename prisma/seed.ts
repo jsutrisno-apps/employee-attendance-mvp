@@ -13,28 +13,39 @@ const adapter = new PrismaPg({ connectionString });
 const prisma = new PrismaClient({ adapter });
 
 const adminPassword = "admin-password";
+const demoPassword = "demo-password";
 
-const canonicalEmployees = [
-  { employeeNumber: "CX-0001", name: "Joko Sutrisno", email: "joko.sutrisno@example.test" },
-  { employeeNumber: "CX-0002", name: "Eko Patria", email: "eko.patria@example.test" },
-  { employeeNumber: "CX-0003", name: "Taufan Wira", email: "taufan.wira@example.test" },
-  { employeeNumber: "CX-0004", name: "Dewi Lestari", email: "dewi.lestari@example.test" },
-  { employeeNumber: "CX-0005", name: "Budi Santoso", email: "budi.santoso@example.test" },
-  { employeeNumber: "CX-0006", name: "Siti Rahayu", email: "siti.rahayu@example.test" },
-  { employeeNumber: "CX-0007", name: "Agus Wijaya", email: "agus.wijaya@example.test" },
-  { employeeNumber: "CX-0008", name: "Rina Kusuma", email: "rina.kusuma@example.test" },
-  { employeeNumber: "CX-0009", name: "Hendra Setiawan", email: "hendra.setiawan@example.test" },
-  { employeeNumber: "CX-0010", name: "Sri Wahyuni", email: "sri.wahyuni@example.test" },
-  { employeeNumber: "CX-0011", name: "Bambang Pratama", email: "bambang.pratama@example.test" },
-  { employeeNumber: "CX-0012", name: "Indah Permata", email: "indah.permata@example.test" },
-  { employeeNumber: "CX-0013", name: "Rizky Ramadhan", email: "rizky.ramadhan@example.test" },
-  { employeeNumber: "CX-0014", name: "Maya Utami", email: "maya.utami@example.test" },
-  { employeeNumber: "CX-0015", name: "Aditya Nugroho", email: "aditya.nugroho@example.test" },
-  { employeeNumber: "CX-0016", name: "Putri Handayani", email: "putri.handayani@example.test" },
-  { employeeNumber: "CX-0017", name: "Fajar Hidayat", email: "fajar.hidayat@example.test" },
-  { employeeNumber: "CX-0018", name: "Dian Saputra", email: "dian.saputra@example.test" },
-  { employeeNumber: "CX-0019", name: "Arif Rahman", email: "arif.rahman@example.test" },
-  { employeeNumber: "CX-0020", name: "Nurul Huda", email: "nurul.huda@example.test" },
+export const canonicalAdminUser = {
+  email: "admin@example.test",
+  password: "admin-password",
+};
+
+export const canonicalDemoUser = {
+  email: "demo@example.test",
+  password: "demo-password",
+};
+
+export const canonicalEmployees = [
+  { employeeNumber: "CX-0001", name: "Andi Pratama", email: "andi.pratama@example.test" },
+  { employeeNumber: "CX-0002", name: "Maya Kurnia", email: "maya.kurnia@example.test" },
+  { employeeNumber: "CX-0003", name: "Rizky Firmansyah", email: "rizky.firmansyah@example.test" },
+  { employeeNumber: "CX-0004", name: "Nita Anggraini", email: "nita.anggraini@example.test" },
+  { employeeNumber: "CX-0005", name: "Denny Kusuma", email: "denny.kusuma@example.test" },
+  { employeeNumber: "CX-0006", name: "Citra Handayani", email: "citra.handayani@example.test" },
+  { employeeNumber: "CX-0007", name: "Hadi Saputra", email: "hadi.saputra@example.test" },
+  { employeeNumber: "CX-0008", name: "Sari Wulandari", email: "sari.wulandari@example.test" },
+  { employeeNumber: "CX-0009", name: "Agung Wicaksono", email: "agung.wicaksono@example.test" },
+  { employeeNumber: "CX-0010", name: "Fitri Rahmadani", email: "fitri.rahmadani@example.test" },
+  { employeeNumber: "CX-0011", name: "Bayu Suhendra", email: "bayu.suhendra@example.test" },
+  { employeeNumber: "CX-0012", name: "Tari Maharani", email: "tari.maharani@example.test" },
+  { employeeNumber: "CX-0013", name: "Farhan Maulana", email: "farhan.maulana@example.test" },
+  { employeeNumber: "CX-0014", name: "Rina Cahyani", email: "rina.cahyani@example.test" },
+  { employeeNumber: "CX-0015", name: "Indra Setiawan", email: "indra.setiawan@example.test" },
+  { employeeNumber: "CX-0016", name: "Nina Kartika", email: "nina.kartika@example.test" },
+  { employeeNumber: "CX-0017", name: "Lukman Hakim", email: "lukman.hakim@example.test" },
+  { employeeNumber: "CX-0018", name: "Anita Setyowati", email: "anita.setyowati@example.test" },
+  { employeeNumber: "CX-0019", name: "Irfan Budiman", email: "irfan.budiman@example.test" },
+  { employeeNumber: "CX-0020", name: "Yuni Astuti", email: "yuni.astuti@example.test" },
 ];
 
 function mulberry32(seed: number) {
@@ -68,10 +79,16 @@ const leaveNotes = ["Annual leave", "Sick leave", "Personal leave"];
 
 async function main() {
   const adminPasswordHash = await hash(adminPassword, 12);
+  const demoPasswordHash = await hash(demoPassword, 12);
 
-  // 1. Cleanup obsolete Employee users and Attendance records
+  // 1. Cleanup obsolete Employee users, obsolete Demo users, and Attendance records
   await prisma.user.deleteMany({
-    where: { role: "Employee" },
+    where: {
+      OR: [
+        { role: "Employee" },
+        { role: "Demo", email: { not: "demo@example.test" } },
+      ],
+    },
   });
 
   await prisma.attendanceRecord.deleteMany({});
@@ -100,6 +117,21 @@ async function main() {
     },
   });
 
+  // 2b. Upsert Canonical Demo
+  const demoUser = await prisma.user.upsert({
+    where: { email: "demo@example.test" },
+    update: {
+      passwordHash: demoPasswordHash,
+      role: "Demo",
+      employeeId: null,
+    },
+    create: {
+      email: "demo@example.test",
+      passwordHash: demoPasswordHash,
+      role: "Demo",
+    },
+  });
+
   // 3. Upsert 20 Canonical Employees
   const employeeRecordsMap = new Map<string, string>(); // employeeNumber -> id
   for (const empData of canonicalEmployees) {
@@ -120,8 +152,8 @@ async function main() {
     employeeRecordsMap.set(empData.employeeNumber, emp.id);
   }
 
-  // 4. Generate Deterministic Historical Attendance (2026-07-01 to 2026-08-08)
-  const workdays = getWorkdays("2026-07-01", "2026-08-08");
+  // 4. Generate Deterministic Historical Attendance (2026-07-01 to 2026-08-09)
+  const workdays = getWorkdays("2026-07-01", "2026-08-09");
   const recordsToCreate: Array<{
     employeeId: string;
     attendanceDate: Date;
@@ -233,17 +265,21 @@ async function main() {
   // 5. Verification & Reporting
   const totalEmployeesCount = await prisma.employee.count();
   const totalAdminCount = await prisma.user.count({ where: { role: "Admin" } });
+  const totalDemoCount = await prisma.user.count({ where: { role: "Demo" } });
   const totalEmployeeUserCount = await prisma.user.count({ where: { role: "Employee" } });
+  const totalUserCount = await prisma.user.count();
   const totalAttendanceRecordCount = await prisma.attendanceRecord.count();
 
   const totalOpportunities = canonicalEmployees.length * workdays.length;
 
   console.log("==========================================");
-  console.log("P8B DEMO SEED COMPLETED SUCCESSFULLY");
+  console.log("STAGE A4 PUBLIC DEMO SEED COMPLETED SUCCESSFULLY");
   console.log("==========================================");
   console.log(`Employees Created: ${totalEmployeesCount}`);
   console.log(`User Admin Count: ${totalAdminCount} (${adminUser.email})`);
+  console.log(`User Demo Count: ${totalDemoCount} (${demoUser.email})`);
   console.log(`User Employee Count: ${totalEmployeeUserCount}`);
+  console.log(`Total User Count: ${totalUserCount}`);
   console.log(`Total Expected Opportunities: ${totalOpportunities} (${canonicalEmployees.length} employees * ${workdays.length} workdays)`);
   console.log(`Persisted Attendance Records: ${totalAttendanceRecordCount}`);
   console.log(`  - Present Count: ${countPresent} (${((countPresent / totalOpportunities) * 100).toFixed(1)}%)`);
@@ -252,10 +288,39 @@ async function main() {
   console.log(`  - Derived Absent Count: ${countDerivedAbsent} (${((countDerivedAbsent / totalOpportunities) * 100).toFixed(1)}%)`);
   console.log("==========================================");
 
-  // Assert programmatic quality
-  if (totalEmployeesCount !== 20) throw new Error(`Expected 20 employees, found ${totalEmployeesCount}`);
+  // Assert programmatic quality (Stage A4 Quality Assertions)
+  const allEmployees = await prisma.employee.findMany();
+  if (allEmployees.length !== 20) throw new Error(`Expected 20 employees, found ${allEmployees.length}`);
+
+  const employeeNumbers = new Set(allEmployees.map((e) => e.employeeNumber));
+  if (employeeNumbers.size !== 20) throw new Error("Duplicate employee numbers found!");
+
+  const employeeEmails = new Set(allEmployees.map((e) => e.email));
+  if (employeeEmails.size !== 20) throw new Error("Duplicate employee emails found!");
+
+  for (let i = 1; i <= 20; i++) {
+    const expectedNum = `CX-${String(i).padStart(4, "0")}`;
+    if (!employeeNumbers.has(expectedNum)) throw new Error(`Missing expected employee number ${expectedNum}`);
+  }
+
+  const forbiddenWords = ["test", "demo", "sample", "mvp", "validation", "stage"];
+  for (const emp of allEmployees) {
+    if (!emp.email.endsWith("@example.test")) throw new Error(`Invalid email domain for employee ${emp.email}`);
+    if (!emp.name || emp.name.trim().length === 0) throw new Error(`Empty employee name for ${emp.employeeNumber}`);
+
+    const nameLower = emp.name.toLowerCase();
+    for (const forbidden of forbiddenWords) {
+      if (nameLower.includes(forbidden)) {
+        throw new Error(`Employee name '${emp.name}' contains prohibited test word '${forbidden}'`);
+      }
+    }
+  }
+
   if (totalAdminCount !== 1) throw new Error(`Expected 1 admin user, found ${totalAdminCount}`);
+  if (totalDemoCount !== 1) throw new Error(`Expected 1 demo user, found ${totalDemoCount}`);
   if (totalEmployeeUserCount !== 0) throw new Error(`Expected 0 employee users, found ${totalEmployeeUserCount}`);
+  if (totalUserCount !== 2) throw new Error(`Expected 2 total users, found ${totalUserCount}`);
+  if (demoUser.employeeId !== null) throw new Error("Expected demo user employeeId to be null");
   if (totalAttendanceRecordCount !== countPresent + countLate + countLeave) {
     throw new Error("Attendance record count mismatch!");
   }

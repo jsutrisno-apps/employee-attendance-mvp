@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { signOut } from "@/auth";
-import { requireEmployee } from "@/lib/authorization";
+import { requireEmployeeView } from "@/lib/authorization";
 import { prisma } from "@/lib/db";
 import {
   buildAttendanceHistoryEntries,
@@ -14,7 +14,7 @@ import { AppShell } from "@/components/app-shell";
 import { StatusBadge } from "@/components/status-badge";
 
 export default async function EmployeeAttendanceHistoryPage() {
-  const employee = await requireEmployee();
+  const employee = await requireEmployeeView();
   const currentBusinessDate = getJakartaBusinessDate(new Date());
   const { startDate, endDate } =
     getAttendanceHistoryWindow(currentBusinessDate);

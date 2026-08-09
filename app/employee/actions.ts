@@ -2,7 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { Prisma } from "@/prisma/generated/client";
-import { requireEmployee } from "@/lib/authorization";
+import {
+  requireEmployeeMutation,
+  DemoAccessRestrictedError,
+  DEMO_RESTRICTED_MESSAGE,
+} from "@/lib/authorization";
 import { prisma } from "@/lib/db";
 import {
   determineAttendanceStatus,
@@ -33,7 +37,16 @@ export async function checkInAction(
   void _previousState;
   void _formData;
 
-  const employee = await requireEmployee();
+  let employee: Awaited<ReturnType<typeof requireEmployeeMutation>>;
+  try {
+    employee = await requireEmployeeMutation();
+  } catch (error) {
+    if (error instanceof DemoAccessRestrictedError) {
+      return { error: DEMO_RESTRICTED_MESSAGE };
+    }
+    throw error;
+  }
+
   const now = new Date();
   const attendanceDate = getJakartaBusinessDate(now);
 
@@ -91,7 +104,16 @@ export async function checkOutAction(
   void _previousState;
   void _formData;
 
-  const employee = await requireEmployee();
+  let employee: Awaited<ReturnType<typeof requireEmployeeMutation>>;
+  try {
+    employee = await requireEmployeeMutation();
+  } catch (error) {
+    if (error instanceof DemoAccessRestrictedError) {
+      return { error: DEMO_RESTRICTED_MESSAGE };
+    }
+    throw error;
+  }
+
   const now = new Date();
   const attendanceDate = getJakartaBusinessDate(now);
 

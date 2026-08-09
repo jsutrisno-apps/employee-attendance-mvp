@@ -1,6 +1,6 @@
 import { signOut } from "@/auth";
 import Link from "next/link";
-import { requireEmployee } from "@/lib/authorization";
+import { requireEmployeeView } from "@/lib/authorization";
 import { prisma } from "@/lib/db";
 import {
   formatJakartaBusinessDate,
@@ -34,7 +34,7 @@ function actionForRecord(
 }
 
 export default async function EmployeePage() {
-  const employee = await requireEmployee();
+  const employee = await requireEmployeeView();
   const now = new Date();
   const attendanceDate = getJakartaBusinessDate(now);
   const businessDateKey = getJakartaBusinessDateKey(now);

@@ -3,7 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { Prisma } from "@/prisma/generated/client";
-import { requireAdmin } from "@/lib/authorization";
+import {
+  requireAdminMutation,
+  DemoAccessRestrictedError,
+  DEMO_RESTRICTED_MESSAGE,
+} from "@/lib/authorization";
 import { prisma } from "@/lib/db";
 
 export type EmployeeFormState = {
@@ -106,7 +110,14 @@ export async function createEmployeeAction(
   _previousState: EmployeeFormState,
   formData: FormData,
 ): Promise<EmployeeFormState> {
-  await requireAdmin();
+  try {
+    await requireAdminMutation();
+  } catch (error) {
+    if (error instanceof DemoAccessRestrictedError) {
+      return { errors: { form: DEMO_RESTRICTED_MESSAGE } };
+    }
+    throw error;
+  }
 
   const { data, errors } = validateEmployeeInput(formData, false);
 
@@ -137,7 +148,14 @@ export async function updateEmployeeAction(
   _previousState: EmployeeFormState,
   formData: FormData,
 ): Promise<EmployeeFormState> {
-  await requireAdmin();
+  try {
+    await requireAdminMutation();
+  } catch (error) {
+    if (error instanceof DemoAccessRestrictedError) {
+      return { errors: { form: DEMO_RESTRICTED_MESSAGE } };
+    }
+    throw error;
+  }
 
   const { data, errors } = validateEmployeeInput(formData, true);
 
@@ -170,4 +188,32 @@ export async function updateEmployeeAction(
   revalidatePath("/admin/employees");
   revalidatePath(`/admin/employees/${id}/edit`);
   redirect("/admin/employees");
+}
+
+export async function deleteEmployeeAction(id: string): Promise<{ error?: string; success?: string }> {
+  try {
+    await requireAdminMutation();
+  } catch (error) {
+    if (error instanceof DemoAccessRestrictedError) {
+      return { error: DEMO_RESTRICTED_MESSAGE };
+    }
+    throw error;
+  }
+
+  try {
+    await prisma.employee.delete({
+      where: { id },
+    });
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2025"
+    ) {
+      return { error: "Employee was not found." };
+    }
+    throw error;
+  }
+
+  revalidatePath("/admin/employees");
+  return { success: "Employee deleted successfully." };
 }

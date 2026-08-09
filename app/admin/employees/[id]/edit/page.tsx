@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { signOut } from "@/auth";
-import { requireAdmin } from "@/lib/authorization";
+import { requireAdminView } from "@/lib/authorization";
 import { prisma } from "@/lib/db";
 import { updateEmployeeAction } from "../../actions";
 import { EmployeeForm } from "../../employee-form";
@@ -16,7 +16,8 @@ type EditEmployeePageProps = {
 export default async function EditEmployeePage({
   params,
 }: EditEmployeePageProps) {
-  await requireAdmin();
+  const adminUser = await requireAdminView();
+  const isDemo = adminUser.role === "Demo";
 
   const { id } = await params;
   const employee = await prisma.employee.findUnique({
@@ -45,7 +46,7 @@ export default async function EditEmployeePage({
       title="Edit Employee Profile"
       subtitle={`Update details for ${employee.name} (${employee.employeeNumber})`}
       user={{
-        role: "Admin",
+        role: adminUser.role,
       }}
       signOutAction={signOutAction}
     >
@@ -54,7 +55,7 @@ export default async function EditEmployeePage({
           ← Back to Employee Directory
         </Link>
         <div className="rounded-2xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#0F172A]/90 p-6 shadow-sm dark:shadow-2xl backdrop-blur-xl">
-          <EmployeeForm action={action} employee={employee} mode="edit" />
+          <EmployeeForm action={action} employee={employee} mode="edit" isDemo={isDemo} />
         </div>
       </div>
     </AppShell>

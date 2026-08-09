@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { signOut } from "@/auth";
-import { requireAdmin } from "@/lib/authorization";
+import { requireAdminView } from "@/lib/authorization";
 import { getBusinessDateKey, getJakartaBusinessDate } from "@/lib/attendance-time";
 import { prisma } from "@/lib/db";
 import { LeaveForm } from "./leave-form";
 import { AppShell } from "@/components/app-shell";
 
 export default async function AdminAttendanceLeavePage() {
-  await requireAdmin();
+  const adminUser = await requireAdminView();
+  const isDemo = adminUser.role === "Demo";
 
   const employees = await prisma.employee.findMany({
     orderBy: [{ employeeNumber: "asc" }],
@@ -29,7 +30,7 @@ export default async function AdminAttendanceLeavePage() {
       title="Mark Employee Leave"
       subtitle="Record approved leave or time-off for employees"
       user={{
-        role: "Admin",
+        role: adminUser.role,
       }}
       signOutAction={signOutAction}
     >
@@ -50,7 +51,7 @@ export default async function AdminAttendanceLeavePage() {
         ) : null}
 
         <div className="rounded-2xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#0F172A]/90 p-6 shadow-sm dark:shadow-2xl backdrop-blur-xl">
-          <LeaveForm employees={employees} defaultDate={defaultDate} />
+          <LeaveForm employees={employees} defaultDate={defaultDate} isDemo={isDemo} />
         </div>
       </div>
     </AppShell>

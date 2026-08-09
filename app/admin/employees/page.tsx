@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { signOut } from "@/auth";
-import { requireAdmin } from "@/lib/authorization";
+import { requireAdminView } from "@/lib/authorization";
 import { prisma } from "@/lib/db";
 import { AppShell } from "@/components/app-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { UserPlusIcon } from "@/components/icons";
 
 export default async function EmployeesPage() {
-  await requireAdmin();
+  const adminUser = await requireAdminView();
 
   const employees = await prisma.employee.findMany({
     orderBy: [{ employeeNumber: "asc" }],
@@ -30,7 +30,7 @@ export default async function EmployeesPage() {
       title="Employee Directory"
       subtitle="Manage organization employees and status"
       user={{
-        role: "Admin",
+        role: adminUser.role,
       }}
       signOutAction={signOutAction}
     >

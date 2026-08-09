@@ -1,6 +1,6 @@
 import { signOut } from "@/auth";
 import Link from "next/link";
-import { requireAdmin } from "@/lib/authorization";
+import { requireAdminView } from "@/lib/authorization";
 import { prisma } from "@/lib/db";
 import {
   buildAdminAttendanceRows,
@@ -37,7 +37,7 @@ type AdminPageProps = {
 };
 
 export default async function AdminPage({ searchParams }: AdminPageProps) {
-  await requireAdmin();
+  const adminUser = await requireAdminView();
 
   const resolvedSearchParams = await searchParams;
   const rawRange = Array.isArray(resolvedSearchParams?.range)
@@ -225,7 +225,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
       subtitle={`Ringkasan kehadiran hari ini • ${formatJakartaBusinessDate(currentBusinessDate)}${!isTodayWorkday ? " (Bukan Hari Kerja)" : ""}`}
       headerDate={formatJakartaBusinessDate(currentBusinessDate)}
       user={{
-        role: "Admin",
+        role: adminUser.role,
       }}
       signOutAction={signOutAction}
     >

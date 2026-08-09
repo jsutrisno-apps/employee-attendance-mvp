@@ -7,13 +7,13 @@ import { verifyPassword } from "@/lib/password";
 type AuthorizedUser = {
   id: string;
   email: string;
-  role: "Admin" | "Employee";
+  role: "Admin" | "Employee" | "Demo";
   employeeId: string | null;
 };
 
 type SessionUser = {
   userId: string;
-  role: "Admin" | "Employee" | null;
+  role: "Admin" | "Employee" | "Demo" | null;
   employeeId: string | null;
 };
 
@@ -26,7 +26,7 @@ function readPassword(value: unknown) {
 }
 
 function readRole(value: unknown) {
-  return value === "Admin" || value === "Employee" ? value : null;
+  return value === "Admin" || value === "Employee" || value === "Demo" ? value : null;
 }
 
 function readEmployeeId(value: unknown) {
