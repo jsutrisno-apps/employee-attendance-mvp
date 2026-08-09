@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { signOut } from "@/auth";
 import { requireEmployee } from "@/lib/authorization";
 import { prisma } from "@/lib/db";
 import {
@@ -9,12 +10,15 @@ import {
   formatJakartaBusinessDate,
   getJakartaBusinessDate,
 } from "@/lib/attendance-time";
+import { AppShell } from "@/components/app-shell";
+import { StatusBadge } from "@/components/status-badge";
 
 export default async function EmployeeAttendanceHistoryPage() {
   const employee = await requireEmployee();
   const currentBusinessDate = getJakartaBusinessDate(new Date());
   const { startDate, endDate } =
     getAttendanceHistoryWindow(currentBusinessDate);
+
   const records = await prisma.attendanceRecord.findMany({
     where: {
       employeeId: employee.employeeId,
@@ -33,81 +37,82 @@ export default async function EmployeeAttendanceHistoryPage() {
       attendanceDate: "desc",
     },
   });
+
   const historyEntries = buildAttendanceHistoryEntries(
     currentBusinessDate,
     records,
   );
 
+  const employeeRecord = await prisma.employee.findUnique({
+    where: { id: employee.employeeId },
+    select: { name: true, email: true },
+  });
+
+  const signOutAction = async () => {
+    "use server";
+    await signOut({ redirectTo: "/login" });
+  };
+
   return (
-    <main className="min-h-screen bg-slate-50 px-6 py-10 text-slate-950">
-      <section className="mx-auto w-full max-w-4xl space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-slate-500">
-              {formatJakartaBusinessDate(startDate)} to{" "}
-              {formatJakartaBusinessDate(endDate)}
-            </p>
-            <h1 className="text-3xl font-semibold tracking-normal">
-              Attendance History
-            </h1>
-            <p className="text-sm text-slate-600">
-              Recent 30-day personal attendance history.
-            </p>
-          </div>
+    <AppShell
+      title="Attendance History"
+      subtitle={`Personal 30-day window: ${formatJakartaBusinessDate(startDate)} to ${formatJakartaBusinessDate(endDate)}`}
+      user={{
+        name: employeeRecord?.name,
+        email: employeeRecord?.email,
+        role: "Employee",
+      }}
+      signOutAction={signOutAction}
+    >
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
           <Link
-            className="rounded-md border border-slate-300 px-4 py-2 text-center text-sm font-medium text-slate-950"
+            className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline"
             href="/employee"
           >
-            Back to employee area
+            ← Back to Employee Dashboard
           </Link>
         </div>
 
-        <div className="overflow-x-auto rounded-md border border-slate-200 bg-white shadow-sm">
-          <table className="w-full border-collapse text-left text-sm">
-            <thead className="border-b border-slate-200 bg-slate-100">
-              <tr>
-                <th className="px-4 py-3 font-semibold" scope="col">
-                  Date
-                </th>
-                <th className="px-4 py-3 font-semibold" scope="col">
-                  Status
-                </th>
-                <th className="px-4 py-3 font-semibold" scope="col">
-                  Check in
-                </th>
-                <th className="px-4 py-3 font-semibold" scope="col">
-                  Check out
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {historyEntries.length > 0 ? (
-                historyEntries.map((entry) => (
-                  <tr
-                    className="border-b border-slate-100 last:border-b-0"
-                    key={entry.dateKey}
-                  >
-                    <td className="px-4 py-3">
-                      <time dateTime={entry.dateKey}>
-                        {formatJakartaBusinessDate(entry.date)}
-                      </time>
-                    </td>
-                    <td className="px-4 py-3 font-medium">{entry.status}</td>
-                    <td className="px-4 py-3">{entry.checkInTime}</td>
-                    <td className="px-4 py-3">{entry.checkOutTime}</td>
-                  </tr>
-                ))
-              ) : (
+        <div className="rounded-xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#0F172A]/90 p-5 backdrop-blur-md shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="dark-table">
+              <thead>
                 <tr>
-                  <td className="px-4 py-6 text-slate-600" colSpan={4}>
-                    No attendance history is available for this period.
-                  </td>
+                  <th scope="col">Date</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Check In</th>
+                  <th scope="col">Check Out</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {historyEntries.length > 0 ? (
+                  historyEntries.map((entry) => (
+                    <tr key={entry.dateKey}>
+                      <td className="font-mono text-xs font-medium text-slate-700 dark:text-slate-300">
+                        <time dateTime={entry.dateKey}>
+                          {formatJakartaBusinessDate(entry.date)}
+                        </time>
+                      </td>
+                      <td>
+                        <StatusBadge status={entry.status} />
+                      </td>
+                      <td className="font-mono text-xs">{entry.checkInTime}</td>
+                      <td className="font-mono text-xs">{entry.checkOutTime}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={4} className="py-8 text-center text-slate-500">
+                      No attendance history is available for this period.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </section>
-    </main>
+      </div>
+    </AppShell>
   );
 }

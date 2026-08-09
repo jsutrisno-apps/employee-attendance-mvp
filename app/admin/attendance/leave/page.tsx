@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { signOut } from "@/auth";
 import { requireAdmin } from "@/lib/authorization";
 import { getBusinessDateKey, getJakartaBusinessDate } from "@/lib/attendance-time";
 import { prisma } from "@/lib/db";
 import { LeaveForm } from "./leave-form";
+import { AppShell } from "@/components/app-shell";
 
 export default async function AdminAttendanceLeavePage() {
   await requireAdmin();
@@ -17,28 +19,40 @@ export default async function AdminAttendanceLeavePage() {
   });
   const defaultDate = getBusinessDateKey(getJakartaBusinessDate(new Date()));
 
+  const signOutAction = async () => {
+    "use server";
+    await signOut({ redirectTo: "/login" });
+  };
+
   return (
-    <main className="min-h-screen bg-slate-50 px-6 py-10 text-slate-950">
-      <section className="mx-auto w-full max-w-xl space-y-6">
-        <div className="space-y-3">
-          <Link className="text-sm text-slate-600" href="/admin/attendance">
-            Back to attendance
+    <AppShell
+      title="Mark Employee Leave"
+      subtitle="Record approved leave or time-off for employees"
+      user={{
+        role: "Admin",
+      }}
+      signOutAction={signOutAction}
+    >
+      <div className="mx-auto max-w-2xl space-y-6">
+        <div className="flex items-center justify-between">
+          <Link
+            className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+            href="/admin/attendance"
+          >
+            ← Back to Attendance
           </Link>
-          <h1 className="text-3xl font-semibold tracking-normal">
-            Mark Leave
-          </h1>
         </div>
 
         {employees.length === 0 ? (
-          <p className="rounded-md border border-slate-200 bg-white p-4 text-sm text-slate-600">
+          <div className="rounded-xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#0F172A]/90 p-5 text-sm text-slate-500 dark:text-slate-400 shadow-sm">
             No employees are available.
-          </p>
+          </div>
         ) : null}
 
-        <div className="rounded-md border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="rounded-2xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#0F172A]/90 p-6 shadow-sm dark:shadow-2xl backdrop-blur-xl">
           <LeaveForm employees={employees} defaultDate={defaultDate} />
         </div>
-      </section>
-    </main>
+      </div>
+    </AppShell>
   );
 }

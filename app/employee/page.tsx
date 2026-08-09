@@ -10,6 +10,9 @@ import {
   isJakartaWorkday,
 } from "@/lib/attendance-time";
 import { AttendanceActionForm } from "./attendance-action-form";
+import { AppShell } from "@/components/app-shell";
+import { StatusBadge } from "@/components/status-badge";
+import { AttendanceIcon, ClockWarningIcon, CalendarIcon } from "@/components/icons";
 
 function actionForRecord(
   record: {
@@ -36,6 +39,7 @@ export default async function EmployeePage() {
   const attendanceDate = getJakartaBusinessDate(now);
   const businessDateKey = getJakartaBusinessDateKey(now);
   const isWorkday = isJakartaWorkday(now);
+
   const attendanceRecord = await prisma.attendanceRecord.findUnique({
     where: {
       employeeId_attendanceDate: {
@@ -49,6 +53,7 @@ export default async function EmployeePage() {
       checkOutAt: true,
     },
   });
+
   const attendanceStatus = attendanceRecord
     ? attendanceRecord.status
     : isWorkday
@@ -56,75 +61,95 @@ export default async function EmployeePage() {
       : "Not a workday";
   const actionType = actionForRecord(attendanceRecord, isWorkday);
 
+  const employeeRecord = await prisma.employee.findUnique({
+    where: { id: employee.employeeId },
+    select: { name: true, email: true },
+  });
+
+  const signOutAction = async () => {
+    "use server";
+    await signOut({ redirectTo: "/login" });
+  };
+
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-6 py-10 text-slate-950">
-      <section className="w-full max-w-md space-y-6 rounded-md border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-slate-500">
-            {formatJakartaBusinessDate(attendanceDate)}
-          </p>
-          <h1 className="text-3xl font-semibold tracking-normal">
-            Employee Area
-          </h1>
-          <p className="text-sm text-slate-600">
-            Jakarta business date: {businessDateKey}
-          </p>
+    <AppShell
+      title="Employee Portal"
+      subtitle={`Jakarta business date: ${formatJakartaBusinessDate(attendanceDate)} (${businessDateKey})`}
+      user={{
+        name: employeeRecord?.name,
+        email: employeeRecord?.email,
+        role: "Employee",
+      }}
+      signOutAction={signOutAction}
+    >
+      <div className="mx-auto max-w-xl space-y-6">
+        {/* Main Status & Action Card */}
+        <div className="rounded-2xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#0F172A]/90 p-6 shadow-sm dark:shadow-2xl backdrop-blur-xl space-y-6">
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/[0.08] pb-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                Today&apos;s Status
+              </p>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight mt-0.5">
+                Attendance Overview
+              </h2>
+            </div>
+            <StatusBadge status={attendanceStatus} />
+          </div>
+
+          {/* Timestamps Grid */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-xl border border-slate-200 dark:border-white/[0.06] bg-slate-50 dark:bg-[#090E1A] p-4 text-center">
+              <span className="block text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                Check-In Time
+              </span>
+              <span className="mt-1 block font-mono text-lg font-bold text-slate-900 dark:text-white">
+                {formatJakartaTime(attendanceRecord?.checkInAt ?? null)}
+              </span>
+            </div>
+            <div className="rounded-xl border border-slate-200 dark:border-white/[0.06] bg-slate-50 dark:bg-[#090E1A] p-4 text-center">
+              <span className="block text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                Check-Out Time
+              </span>
+              <span className="mt-1 block font-mono text-lg font-bold text-slate-900 dark:text-white">
+                {formatJakartaTime(attendanceRecord?.checkOutAt ?? null)}
+              </span>
+            </div>
+          </div>
+
+          {/* Action Form or Notice */}
+          {actionType ? (
+            <div className="pt-2">
+              <AttendanceActionForm actionType={actionType} />
+            </div>
+          ) : null}
+
+          {!actionType && !attendanceRecord && !isWorkday ? (
+            <div className="flex items-center gap-3 rounded-xl border border-blue-500/20 bg-blue-500/10 p-4 text-xs font-medium text-blue-700 dark:text-blue-300">
+              <ClockWarningIcon size={18} className="shrink-0" />
+              <span>Check-in is not available on weekends. Enjoy your day off!</span>
+            </div>
+          ) : null}
+
+          {attendanceRecord?.status === "Leave" ? (
+            <div className="flex items-center gap-3 rounded-xl border border-purple-500/20 bg-purple-500/10 p-4 text-xs font-medium text-purple-700 dark:text-purple-300">
+              <CalendarIcon size={18} className="shrink-0" />
+              <span>You are marked as Leave today. Have a restful time off!</span>
+            </div>
+          ) : null}
+
+          {/* History Link */}
+          <div className="pt-2">
+            <Link
+              className="flex items-center justify-center gap-2 w-full rounded-xl border border-slate-200 dark:border-white/[0.1] bg-slate-100 dark:bg-white/[0.04] py-3 text-center text-xs font-semibold text-slate-700 dark:text-slate-200 transition hover:bg-slate-200 dark:hover:bg-white/[0.08]"
+              href="/employee/history"
+            >
+              <AttendanceIcon size={16} />
+              <span>View Attendance History</span>
+            </Link>
+          </div>
         </div>
-
-        <dl className="grid gap-4 rounded-md border border-slate-200 p-4">
-          <div className="flex items-center justify-between gap-4">
-            <dt className="text-sm text-slate-600">Status</dt>
-            <dd className="text-sm font-semibold">{attendanceStatus}</dd>
-          </div>
-          <div className="flex items-center justify-between gap-4">
-            <dt className="text-sm text-slate-600">Check-in time</dt>
-            <dd className="text-sm font-semibold">
-              {formatJakartaTime(attendanceRecord?.checkInAt ?? null)}
-            </dd>
-          </div>
-          <div className="flex items-center justify-between gap-4">
-            <dt className="text-sm text-slate-600">Check-out time</dt>
-            <dd className="text-sm font-semibold">
-              {formatJakartaTime(attendanceRecord?.checkOutAt ?? null)}
-            </dd>
-          </div>
-        </dl>
-
-        {actionType ? <AttendanceActionForm actionType={actionType} /> : null}
-
-        {!actionType && !attendanceRecord && !isWorkday ? (
-          <p className="text-sm text-slate-600">
-            Check-in is not available on weekends.
-          </p>
-        ) : null}
-
-        {attendanceRecord?.status === "Leave" ? (
-          <p className="text-sm text-slate-600">
-            You are marked as Leave today.
-          </p>
-        ) : null}
-
-        <Link
-          className="block w-full rounded-md border border-slate-300 px-4 py-2 text-center text-sm font-medium text-slate-950"
-          href="/employee/history"
-        >
-          View attendance history
-        </Link>
-
-        <form
-          action={async () => {
-            "use server";
-            await signOut({ redirectTo: "/login" });
-          }}
-        >
-          <button
-            className="w-full rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-950"
-            type="submit"
-          >
-            Sign out
-          </button>
-        </form>
-      </section>
-    </main>
+      </div>
+    </AppShell>
   );
 }

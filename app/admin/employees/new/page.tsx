@@ -1,22 +1,35 @@
 import Link from "next/link";
+import { signOut } from "@/auth";
 import { requireAdmin } from "@/lib/authorization";
 import { createEmployeeAction } from "../actions";
 import { EmployeeForm } from "../employee-form";
+import { AppShell } from "@/components/app-shell";
 
 export default async function NewEmployeePage() {
   await requireAdmin();
 
+  const signOutAction = async () => {
+    "use server";
+    await signOut({ redirectTo: "/login" });
+  };
+
   return (
-    <main className="min-h-screen bg-slate-50 px-6 py-10 text-slate-950">
-      <section className="mx-auto max-w-5xl">
-        <Link className="text-sm text-slate-600" href="/admin/employees">
-          Back to employees
+    <AppShell
+      title="Add New Employee"
+      subtitle="Create a new employee profile in the system"
+      user={{
+        role: "Admin",
+      }}
+      signOutAction={signOutAction}
+    >
+      <div className="mx-auto max-w-2xl space-y-6">
+        <Link className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline" href="/admin/employees">
+          ← Back to Employee Directory
         </Link>
-        <h1 className="mt-3 text-3xl font-semibold tracking-normal">
-          Add Employee
-        </h1>
-        <EmployeeForm action={createEmployeeAction} mode="create" />
-      </section>
-    </main>
+        <div className="rounded-2xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#0F172A]/90 p-6 shadow-sm dark:shadow-2xl backdrop-blur-xl">
+          <EmployeeForm action={createEmployeeAction} mode="create" />
+        </div>
+      </div>
+    </AppShell>
   );
 }

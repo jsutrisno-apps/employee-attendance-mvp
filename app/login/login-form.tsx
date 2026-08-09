@@ -12,43 +12,45 @@ export function LoginForm() {
   );
 
   return (
-    <form action={formAction} className="mt-6 space-y-4">
-      <div className="space-y-2">
-        <label className="block text-sm font-medium" htmlFor="email">
-          Email
+    <form action={formAction} className="space-y-4">
+      <div className="space-y-1.5">
+        <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300" htmlFor="email">
+          Email Address
         </label>
         <input
           autoComplete="email"
-          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
+          className="w-full rounded-xl border border-slate-200 dark:border-white/[0.1] bg-slate-50 dark:bg-[#090E1A] px-3.5 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none transition duration-150 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 shadow-inner"
           id="email"
           name="email"
+          placeholder="admin@example.com or employee@example.com"
           required
           type="email"
         />
       </div>
 
-      <div className="space-y-2">
-        <label className="block text-sm font-medium" htmlFor="password">
+      <div className="space-y-1.5">
+        <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300" htmlFor="password">
           Password
         </label>
         <input
           autoComplete="current-password"
-          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
+          className="w-full rounded-xl border border-slate-200 dark:border-white/[0.1] bg-slate-50 dark:bg-[#090E1A] px-3.5 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none transition duration-150 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 shadow-inner"
           id="password"
           name="password"
+          placeholder="••••••••"
           required
           type="password"
         />
       </div>
 
       {state.error ? (
-        <p className="text-sm text-red-700" role="alert">
+        <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-3 text-xs font-medium text-rose-600 dark:text-rose-300" role="alert">
           {state.error}
-        </p>
+        </div>
       ) : null}
 
       <button
-        className="w-full rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:bg-slate-400"
+        className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_0_20px_rgba(59,130,246,0.3)] transition duration-150 hover:from-blue-500 hover:to-blue-400 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
         disabled={pending}
         type="submit"
       >

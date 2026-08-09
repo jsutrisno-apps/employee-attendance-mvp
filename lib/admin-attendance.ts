@@ -61,16 +61,16 @@ function statusForMissingRecord(
   const selectedDateKey = getBusinessDateKey(selectedDate);
   const currentDateKey = getBusinessDateKey(currentBusinessDate);
 
-  if (selectedDateKey === currentDateKey) {
+  if (selectedDateKey > currentDateKey || !isBusinessDateWorkday(selectedDate)) {
     return {
-      attendanceStatus: "Not checked in",
+      attendanceStatus: "Not expected",
       source: "neutral",
     };
   }
 
-  if (selectedDateKey > currentDateKey || !isBusinessDateWorkday(selectedDate)) {
+  if (selectedDateKey === currentDateKey) {
     return {
-      attendanceStatus: "Not expected",
+      attendanceStatus: "Not checked in",
       source: "neutral",
     };
   }

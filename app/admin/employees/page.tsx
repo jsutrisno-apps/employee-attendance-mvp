@@ -1,6 +1,10 @@
 import Link from "next/link";
+import { signOut } from "@/auth";
 import { requireAdmin } from "@/lib/authorization";
 import { prisma } from "@/lib/db";
+import { AppShell } from "@/components/app-shell";
+import { StatusBadge } from "@/components/status-badge";
+import { UserPlusIcon } from "@/components/icons";
 
 export default async function EmployeesPage() {
   await requireAdmin();
@@ -16,66 +20,96 @@ export default async function EmployeesPage() {
     },
   });
 
+  const signOutAction = async () => {
+    "use server";
+    await signOut({ redirectTo: "/login" });
+  };
+
   return (
-    <main className="min-h-screen bg-slate-50 px-6 py-10 text-slate-950">
-      <section className="mx-auto max-w-5xl">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <Link className="text-sm text-slate-600" href="/admin">
-              Back to admin
-            </Link>
-            <h1 className="mt-3 text-3xl font-semibold tracking-normal">
-              Employees
-            </h1>
-          </div>
+    <AppShell
+      title="Employee Directory"
+      subtitle="Manage organization employees and status"
+      user={{
+        role: "Admin",
+      }}
+      signOutAction={signOutAction}
+    >
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+            Total Employees: <span className="font-bold text-slate-900 dark:text-white">{employees.length}</span>
+          </p>
           <Link
-            className="rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white"
+            className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-[0_0_20px_rgba(59,130,246,0.3)] transition hover:bg-blue-500"
             href="/admin/employees/new"
           >
-            Add employee
+            <UserPlusIcon size={18} />
+            <span>Add Employee</span>
           </Link>
         </div>
 
         {employees.length === 0 ? (
-          <div className="mt-8 rounded-md border border-slate-200 bg-white p-6 text-sm text-slate-600">
+          <div className="rounded-xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#0F172A]/90 p-8 text-center text-sm text-slate-500 dark:text-slate-400 shadow-sm">
             No employees have been added yet.
           </div>
         ) : (
-          <div className="mt-8 overflow-x-auto rounded-md border border-slate-200 bg-white">
-            <table className="w-full border-collapse text-left text-sm">
-              <thead className="bg-slate-100 text-slate-700">
-                <tr>
-                  <th className="px-4 py-3 font-medium">Employee number</th>
-                  <th className="px-4 py-3 font-medium">Name</th>
-                  <th className="px-4 py-3 font-medium">Email</th>
-                  <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200">
-                {employees.map((employee) => (
-                  <tr key={employee.id}>
-                    <td className="px-4 py-3">{employee.employeeNumber}</td>
-                    <td className="px-4 py-3">{employee.name}</td>
-                    <td className="px-4 py-3">{employee.email}</td>
-                    <td className="px-4 py-3">
-                      {employee.isActive ? "Active" : "Inactive"}
-                    </td>
-                    <td className="px-4 py-3">
-                      <Link
-                        className="font-medium text-slate-950 underline underline-offset-4"
-                        href={`/admin/employees/${employee.id}/edit`}
-                      >
-                        Edit
-                      </Link>
-                    </td>
+          <div className="rounded-xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#0F172A]/90 p-5 backdrop-blur-md shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="dark-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Employee Number</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {employees.map((employee) => {
+                    const initials = employee.name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .slice(0, 2)
+                      .join("")
+                      .toUpperCase();
+                    return (
+                      <tr key={employee.id}>
+                        <td className="font-mono text-xs font-semibold text-slate-600 dark:text-slate-300">
+                          {employee.employeeNumber}
+                        </td>
+                        <td>
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-white/[0.08]">
+                              {initials}
+                            </div>
+                            <span className="font-semibold text-slate-900 dark:text-white">{employee.name}</span>
+                          </div>
+                        </td>
+                        <td className="text-slate-500 dark:text-slate-400">{employee.email}</td>
+                        <td>
+                          <StatusBadge
+                            status={employee.isActive ? "Active" : "Inactive"}
+                            size="sm"
+                          />
+                        </td>
+                        <td>
+                          <Link
+                            className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 hover:underline"
+                            href={`/admin/employees/${employee.id}/edit`}
+                          >
+                            Edit
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
-      </section>
-    </main>
+      </div>
+    </AppShell>
   );
 }
