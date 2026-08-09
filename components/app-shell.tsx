@@ -119,6 +119,8 @@ export function AppShell({
         .slice(0, 2)
         .join("")
         .toUpperCase()
+    : user?.role === "Demo"
+    ? "DM"
     : user?.role === "Admin"
     ? "AU"
     : "EM";
@@ -280,10 +282,10 @@ export function AppShell({
                 {!isCollapsed && (
                   <div className="truncate min-w-0">
                     <p className="text-xs font-semibold text-slate-900 dark:text-white truncate">
-                      {user?.name ?? (isAdmin ? "Admin User" : "Employee")}
+                      {user?.name ?? (user?.role === "Demo" ? "Demo User" : isAdmin ? "Admin User" : "Employee")}
                     </p>
                     <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">
-                      {user?.role ?? (isAdmin ? "Administrator" : "Employee")}
+                      {user?.role === "Demo" ? "Demo Account" : user?.role ?? (isAdmin ? "Administrator" : "Employee")}
                     </p>
                   </div>
                 )}
